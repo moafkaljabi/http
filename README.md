@@ -1,8 +1,11 @@
-### C++ http Server
+# IoT Backend
 
-Built using C++.
+This project implements a backend for IoT devices using C++.
 
+## Installation
 
-### Build
+Instructions to install the project.
 
-To build.
+## Usage
+
+Instructions on how to use the project.
