@@ -18,43 +18,42 @@ in server.cpp:
 
 */      
 
-#ifndef INCLUDED_HTTP_TCPSERVER_LINUX
-#define INCLUDED_HTTP_TCPSERVER_LINUX
+// Logic/include/http_TCPServer.h
+#pragma once
 
-
-/* includes */
-#include <stdio.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
 #include <string>
+#include <atomic>
 
 namespace http {
-    class TCPServer {
 
-    public:
-        TCPServer(std::string IPAddress, int port);
-        ~TCPServer();
-        void startListen();
+class TCPServer {
+public:
+    TCPServer(std::string ip, int port, int max_connections = 100);
+    ~TCPServer();
 
-    private:
-        std::string m_ip_address;
-        int m_socket;
-        int m_port;
-        int m_new_socket;
-        long m_incoming_message;
-        struct sockaddr_in m_socket_address;
-        unsigned int m_socket_address_len;
-        std::string m_server_message;
+    TCPServer(const TCPServer&) = delete;
+    TCPServer& operator=(const TCPServer&) = delete;
 
-        int startServer();
-        void closeServer();
-        void acceptConnection(int &new_socket);
-        std::string buildResponse();
-        void sendResponse();
-    };
+    int startServer();            // create, bind, listen
+    void startListen();           // accept loop (blocks)
+    void stop();                  // request shutdown
 
-}
+private:
+    std::string m_ip_address;
+    int m_port;
+    int m_listen_fd{-1};
+    int m_max_connections;
+    std::atomic<int> m_active_connections{0};
+    std::atomic<bool> m_running{false};
 
+    std::string m_server_message;
 
-#endif
+    int acceptConnection();
+    void handleClient(int client_fd);
+    std::string buildResponse(const std::string &body);
+    bool sendAll(int fd, const char *buf, size_t len);
+    void closeServer();
+};
+
+} // namespace http
+
